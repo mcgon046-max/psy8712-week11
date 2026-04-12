@@ -1,4 +1,5 @@
 # Script Settings and Resources 
+# Note: axed tidyverse because it was taking too long. (I think you mentioned this?)
 library(dplyr)
 library(readr)
 library(caret) 
