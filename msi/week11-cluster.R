@@ -193,3 +193,30 @@ format_ml_assign <- function(x) {
   return(x_final)
 }
 
+table3_tbl <- tibble(
+  algo = c("OLS regression", "elastic net", "random forest", "eXtreme Gradient Boosting"),
+  cv_rsq = format_ml_assign(cv_est$TrainRsquared), 
+  ho_rsq = format_ml_assign(holdout_est$Rsquared) 
+) 
+
+write_csv(table3_tbl, "table3.csv")
+
+table4_tbl <- tibble(
+  algo = c("OLS regression", "elastic net", "random forest", "eXtreme Gradient Boosting"),
+  supercomputer = c(
+    ols_time_seq$toc - ols_time_seq$tic, 
+    en_time_seq$toc - en_time_seq$tic,
+    rf_time_seq$toc - rf_time_seq$tic,
+    xgb_time_seq$toc - xgb_time_seq$tic
+  ),
+  parallel_col = c(
+    ols_time_par$toc - ols_time_par$tic,
+    en_time_par$toc - en_time_par$tic,
+    rf_time_par$toc - rf_time_par$tic,
+    xgb_time_par$toc - xgb_time_par$tic
+  )
+)
+
+colnames(table4_tbl)[3] <- paste0("supercomputer_", core_count)
+
+write_csv(table4_tbl, "table4.csv")
