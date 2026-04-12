@@ -78,6 +78,7 @@ en_model <- train(
   na.action = na.pass
 ) 
 en_time_seq <- toc() #Save output
+
 ### Random Forest 
 rf_grid <- expand.grid(
   mtry = c(100, 190, 280), 
@@ -86,6 +87,7 @@ rf_grid <- expand.grid(
 )
 
 #### Actual model specifications
+tic() # Start timer
 rf_model <- train(
   mosthrs ~ ., 
   data = train_data, 
@@ -95,7 +97,7 @@ rf_model <- train(
   trControl = cv_ten, 
   na.action = na.pass
 ) 
-
+rf_time_seq <- toc()
 ### XGboost model 
 xgb_grid <- expand.grid(
   nrounds = c(50, 100), 
@@ -108,6 +110,7 @@ xgb_grid <- expand.grid(
 )
 
 #### Actual model specifications 
+tic() # start timer 
 xgb_model <- train(
   mosthrs ~ ., 
   data = train_data, 
@@ -117,6 +120,95 @@ xgb_model <- train(
   tuneGrid = xgb_grid,  
   na.action = na.pass
 ) 
+xgb_time_seq <- toc() #save output 
+
+
+
+# Parallel execution
+
+
+
+## Cluster (7 cores for my machine)
+local_cluster <- makeCluster(7)
+registerDoParallel(local_cluster) # registered for Caret 
+
+### OLS model 
+tic() # Start timer 
+ols_model <- train(
+  mosthrs ~ ., 
+  data = train_data, 
+  method = "lm", 
+  preProcess =  c("nzv", medimp), 
+  trControl = cv_ten, 
+  na.action = na.pass 
+)
+ols_time_par <- toc() # Saves the time output 
+### Elastic net model 
+enet_grid <- expand.grid(
+  alpha = seq(0, 1, by = 0.1),
+  lambda = seq(0.0001, 0.1, length = 10)
+) 
+
+#### Actual model specifications 
+tic() #Start timer
+en_model <- train(
+  mosthrs ~ ., 
+  data = train_data, 
+  method = "glmnet", 
+  preProcess =  c("nzv", medimp), 
+  tuneGrid = enet_grid, 
+  trControl = cv_ten,
+  na.action = na.pass
+) 
+en_time_par <- toc() #Save output
+
+### Random Forest 
+rf_grid <- expand.grid(
+  mtry = c(100, 190, 280), 
+  splitrule = "variance", 
+  min.node.size = 5 
+)
+
+#### Actual model specifications
+tic() # Start timer
+rf_model <- train(
+  mosthrs ~ ., 
+  data = train_data, 
+  method = "ranger", 
+  preProcess =  c("nzv", medimp), 
+  tuneGrid = rf_grid, 
+  trControl = cv_ten, 
+  na.action = na.pass
+) 
+rf_time_par <- toc()
+### XGboost model 
+xgb_grid <- expand.grid(
+  nrounds = c(50, 100), 
+  eta = c(0.01, 0.1), 
+  max_depth = c(3, 6), 
+  subsample = c(0.8, 1), 
+  colsample_bytree = c(0.33, 0.66, 1), 
+  gamma = 0, 
+  min_child_weight = 1 
+)
+
+#### Actual model specifications 
+tic() # start timer 
+xgb_model <- train(
+  mosthrs ~ ., 
+  data = train_data, 
+  method = "xgbTree", 
+  preProcess = c("nzv", medimp),
+  trControl = cv_ten, 
+  tuneGrid = xgb_grid,  
+  na.action = na.pass
+) 
+xgb_time_par <- toc() #save output 
+
+# Stopping cluster to free up respurces 
+stopCluster(local_cluster)
+# go back to sequential 
+registerDoSEQ()
 
 ## 10 fold CV estimates (training set)
 cv_est <- rbind(
@@ -128,6 +220,12 @@ cv_est <- rbind(
 
 ### Print to check 
 print(cv_est)
+
+## Predictions that was missing from previous assignment (note: used parallel predictions here, same code, should be the same)
+ols_preds <- predict(ols_model_par, test_data)
+en_preds <- predict(en_model_par, test_data)
+rf_preds <- predict(rf_model_par, test_data)
+xgb_preds <- predict(xgb_model_par, test_data)
 
 ## Holdout CV estimates (Test set) dataframe
 holdout_est <- as.data.frame(rbind(
