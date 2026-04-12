@@ -129,8 +129,8 @@ xgb_time_seq <- toc() #save output
 
 
 
-## Cluster (7 cores for my machine)
-local_cluster <- makeCluster(4)
+## Cluster (8 cores total for my machine)
+local_cluster <- makeCluster(4) # changed to 4 due to errors 
 registerDoParallel(local_cluster) # registered for Caret 
 
 ### OLS model 
@@ -258,4 +258,24 @@ table1_tbl <- tibble(
 
 ## Write csv
 write_csv(table1_tbl, "../out/table1.csv")
-### NOTE: I couldn't figure out exactly what I did wrong to have my holdout r^2 so much higher :( I know its a leakage problem of some sort, but, in understanding that this assingment is about performance between multi-core processing and super computing, I am going to leave it as is. 
+### NOTE: I couldn't figure out exactly what I did wrong to have my holdout r^2 so much higher :( I know its a leakage problem of some sort, but, in understanding that this assignment is about performance between multi-core processing and super computing, I am going to leave it as is.
+
+# table 2
+table2_tbl <- tibble(
+  algo = c("OLS regression", "elastic net", "random forest", "eXtreme Gradient Boosting"),
+  original = c(
+    ols_time_seq$toc - ols_time_seq$tic, # each subseque
+    en_time_seq$toc - en_time_seq$tic,
+    rf_time_seq$toc - rf_time_seq$tic,
+    xgb_time_seq$toc - xgb_time_seq$tic
+  ),
+  parallelized = c(
+    ols_time_par$toc - ols_time_par$tic,
+    en_time_par$toc - en_time_par$tic,
+    rf_time_par$toc - rf_time_par$tic,
+    xgb_time_par$toc - xgb_time_par$tic
+  )
+)
+
+#Write CSV
+write_csv(table2_tbl, "../out/table2.csv")
