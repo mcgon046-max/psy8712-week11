@@ -1,13 +1,14 @@
 # Script Settings and Resources 
-library(haven) 
-library(tidyverse) 
+library(dplyr)
+library(readr)
 library(caret) 
+library(xgboost) 
+library(haven)
 library(parallel)
 library(doParallel)
-library(tictoc)
 
 # Data Import and Cleaning 
-gss_tbl <- read_sav("../data/GSS2016.sav") |> 
+gss_tbl <- haven::read_sav("../data/GSS2016.sav") |> 
   drop_na(mosthrs) |>
   mutate(mosthrs = as.integer(mosthrs)) |> 
   select(-hrs1, -hrs2) |> 
