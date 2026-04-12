@@ -110,8 +110,7 @@ xgb_time_seq <- toc()
 
 # I used parallel::detectCores() to ensure the script automatically scales 
 # to the specific hardware allocated by the MSI scheduler.
-core_count <- parallel::detectCores()
-local_cluster <- makeCluster(core_count)
+local_cluster <- makeCluster(31)
 registerDoParallel(local_cluster) 
 
 tic()
