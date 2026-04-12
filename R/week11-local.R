@@ -264,7 +264,7 @@ write_csv(table1_tbl, "../out/table1.csv")
 table2_tbl <- tibble(
   algo = c("OLS regression", "elastic net", "random forest", "eXtreme Gradient Boosting"),
   original = c(
-    ols_time_seq$toc - ols_time_seq$tic, # each subseque
+    ols_time_seq$toc - ols_time_seq$tic, # each subsequent line does the same, it calcs the difference between tic() and toc() for both sequential and parrallel models. 
     en_time_seq$toc - en_time_seq$tic,
     rf_time_seq$toc - rf_time_seq$tic,
     xgb_time_seq$toc - xgb_time_seq$tic
@@ -288,7 +288,7 @@ write_csv(table2_tbl, "../out/table2.csv")
 ## this is the model which benefitted the most. 
 
 calc_time <- xgb_time_par$tic - ols_time_par$tic
-print(calc_time)
+print(calc_time) # Calcs the time between longest and slowest parralelized models 
 ## 2: The difference between the fastest (OLS) and slowest (XGBoost) 
 ## parallelization model was 29.057 seconds. This is simply due to XGBoost 
 ## having a much longer run time due to the model parameters and the complexity
