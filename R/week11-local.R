@@ -51,7 +51,7 @@ medimp <- "medianImpute"
 registerDoSEQ()
 ### OLS model 
 tic() # Start timer 
-ols_model <- train(
+ols_model_seq <- train(
   mosthrs ~ ., 
   data = train_data, 
   method = "lm", 
@@ -68,7 +68,7 @@ enet_grid <- expand.grid(
 
 #### Actual model specifications 
 tic() #Start timer
-en_model <- train(
+en_model_seq <- train(
   mosthrs ~ ., 
   data = train_data, 
   method = "glmnet", 
@@ -88,14 +88,15 @@ rf_grid <- expand.grid(
 
 #### Actual model specifications
 tic() # Start timer
-rf_model <- train(
+rf_model_seq <- train(
   mosthrs ~ ., 
   data = train_data, 
   method = "ranger", 
   preProcess =  c("nzv", medimp), 
   tuneGrid = rf_grid, 
   trControl = cv_ten, 
-  na.action = na.pass
+  na.action = na.pass,
+  num.threads = 1
 ) 
 rf_time_seq <- toc()
 ### XGboost model 
@@ -111,7 +112,7 @@ xgb_grid <- expand.grid(
 
 #### Actual model specifications 
 tic() # start timer 
-xgb_model <- train(
+xgb_model_seq <- train(
   mosthrs ~ ., 
   data = train_data, 
   method = "xgbTree", 
@@ -129,12 +130,12 @@ xgb_time_seq <- toc() #save output
 
 
 ## Cluster (7 cores for my machine)
-local_cluster <- makeCluster(7)
+local_cluster <- makeCluster(4)
 registerDoParallel(local_cluster) # registered for Caret 
 
 ### OLS model 
 tic() # Start timer 
-ols_model <- train(
+ols_model_par <- train(
   mosthrs ~ ., 
   data = train_data, 
   method = "lm", 
@@ -151,7 +152,7 @@ enet_grid <- expand.grid(
 
 #### Actual model specifications 
 tic() #Start timer
-en_model <- train(
+en_model_par <- train(
   mosthrs ~ ., 
   data = train_data, 
   method = "glmnet", 
@@ -171,14 +172,15 @@ rf_grid <- expand.grid(
 
 #### Actual model specifications
 tic() # Start timer
-rf_model <- train(
+rf_model_par <- train(
   mosthrs ~ ., 
   data = train_data, 
   method = "ranger", 
   preProcess =  c("nzv", medimp), 
   tuneGrid = rf_grid, 
   trControl = cv_ten, 
-  na.action = na.pass
+  na.action = na.pass,
+  num.threads = 1
 ) 
 rf_time_par <- toc()
 ### XGboost model 
@@ -194,7 +196,7 @@ xgb_grid <- expand.grid(
 
 #### Actual model specifications 
 tic() # start timer 
-xgb_model <- train(
+xgb_model_par <- train(
   mosthrs ~ ., 
   data = train_data, 
   method = "xgbTree", 
@@ -212,20 +214,20 @@ registerDoSEQ()
 
 ## 10 fold CV estimates (training set)
 cv_est <- rbind(
-  OLS = getTrainPerf(ols_model),
-  ElasticNet = getTrainPerf(en_model),
-  RandomForest = getTrainPerf(rf_model),
-  XGBoost = getTrainPerf(xgb_model)
+  OLS = getTrainPerf(ols_model_par),
+  ElasticNet = getTrainPerf(en_model_par),
+  RandomForest = getTrainPerf(rf_model_par),
+  XGBoost = getTrainPerf(xgb_model_par)
 )
 
 ### Print to check 
 print(cv_est)
 
 ## Predictions that was missing from previous assignment (note: used parallel predictions here, same code, should be the same)
-ols_preds <- predict(ols_model_par, test_data)
-en_preds <- predict(en_model_par, test_data)
-rf_preds <- predict(rf_model_par, test_data)
-xgb_preds <- predict(xgb_model_par, test_data)
+ols_preds <- predict(ols_model_par, newdata = test_data, na.action = na.pass)
+en_preds <- predict(en_model_par, newdata = test_data, na.action = na.pass)
+rf_preds <- predict(rf_model_par, newdata = test_data, na.action = na.pass)
+xgb_preds <- predict(xgb_model_par, newdata = test_data, na.action = na.pass)
 
 ## Holdout CV estimates (Test set) dataframe
 holdout_est <- as.data.frame(rbind(
@@ -247,7 +249,6 @@ format_ml_assign <- function(x) {
   x_final <- str_replace(x_no_zero, "^-0\\.", "-.") 
   return(x_final)
 } 
-
 ## Table 1 tibble 
 table1_tbl <- tibble(
   algo = c("OLS regression", "elastic net", "random forest", "eXtreme Gradient Boosting"),
@@ -257,3 +258,4 @@ table1_tbl <- tibble(
 
 ## Write csv
 write_csv(table1_tbl, "../out/table1.csv")
+### NOTE: I couldn't figure out exactly what I did wrong to have my holdout r^2 so much higher :( I know its a leakage problem of some sort, but, in understanding that this assingment is about performance between multi-core processing and super computing, I am going to leave it as is. 
