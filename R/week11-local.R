@@ -279,3 +279,15 @@ table2_tbl <- tibble(
 
 #Write CSV
 write_csv(table2_tbl, "../out/table2.csv")
+
+# 11: 
+## 1: Based on the outputs of table 2, the all models except OLS benefited 
+## greatly from the palatalization. Elastic net, Random forest, and XGBoost all
+## had reductions in run time to about 30% of their original time. That being
+## said, the overall compute time was most greatly reduced in XGBoost, thus, 
+## this is the model which benefitted the most. 
+
+calc_time <- xgb_time_par$tic - ols_time_par$tic
+print(calc_time)
+## 2: The difference between the fastest and slowest parralalized model was
+## 29.057 seconds. 
