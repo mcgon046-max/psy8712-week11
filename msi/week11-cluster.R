@@ -7,6 +7,8 @@ library(xgboost)
 library(haven)
 library(parallel)
 library(doParallel)
+library(tidyr)
+library(stringr)
 
 # Data Import and Cleaning 
 gss_tbl <- haven::read_sav("../data/GSS2016.sav") |> 
