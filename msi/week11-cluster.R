@@ -10,7 +10,7 @@ library(doParallel)
 library(tidyr)
 library(stringr)
 library(tictoc)
-
+## Note: glmnet and ranger installed through MSI interactive R studio.
 # Data Import and Cleaning 
 gss_tbl <- haven::read_sav("../data/GSS2016.sav") |> 
   drop_na(mosthrs) |>
@@ -85,32 +85,34 @@ rf_model_seq <- train(
 ) 
 rf_time_seq <- toc()
 
-xgb_grid <- expand.grid(
-  nrounds = c(50, 100), 
-  eta = c(0.01, 0.1), 
-  max_depth = c(3, 6), 
-  subsample = c(0.8, 1), 
-  colsample_bytree = c(0.33, 0.66, 1), 
-  gamma = 0, 
-  min_child_weight = 1 
-)
+# xgb_grid <- expand.grid(
+#   nrounds = c(50, 100), 
+#   eta = c(0.01, 0.1), 
+#   max_depth = c(3, 6), 
+#   subsample = c(0.8, 1), 
+#   colsample_bytree = c(0.33, 0.66, 1), 
+#   gamma = 0, 
+#   min_child_weight = 1 
+# )
 
-tic()
-xgb_model_seq <- train(
-  mosthrs ~ ., 
-  data = train_data, 
-  method = "xgbTree", 
-  preProcess = c("nzv", medimp),
-  trControl = cv_ten, 
-  tuneGrid = xgb_grid,  
-  na.action = na.pass
-) 
-xgb_time_seq <- toc() 
+# Commented out because you mentioned that if this failed, which it has been, we "didn't need to worry about it". I have commented out every other mention of it as well, although, this comment make my code less "lean". 
+
+# tic()
+# xgb_model_seq <- train(
+#   mosthrs ~ ., 
+#   data = train_data, 
+#   method = "xgbTree", 
+#   preProcess = c("nzv", medimp),
+#   trControl = cv_ten, 
+#   tuneGrid = xgb_grid,  
+#   na.action = na.pass
+# ) 
+# xgb_time_seq <- toc() 
 
 # Parallel execution
 
-# I used parallel::detectCores() to ensure the script automatically scales 
-# to the specific hardware allocated by the MSI scheduler.
+
+# asking for 32 cores 
 local_cluster <- makeCluster(31)
 registerDoParallel(local_cluster) 
 
@@ -150,17 +152,17 @@ rf_model_par <- train(
 ) 
 rf_time_par <- toc()
 
-tic()
-xgb_model_par <- train(
-  mosthrs ~ ., 
-  data = train_data, 
-  method = "xgbTree", 
-  preProcess = c("nzv", medimp),
-  trControl = cv_ten, 
-  tuneGrid = xgb_grid,  
-  na.action = na.pass
-) 
-xgb_time_par <- toc() 
+# tic()
+# xgb_model_par <- train(
+#   mosthrs ~ ., 
+#   data = train_data, 
+#   method = "xgbTree", 
+#   preProcess = c("nzv", medimp),
+#   trControl = cv_ten, 
+#   tuneGrid = xgb_grid,  
+#   na.action = na.pass
+# ) 
+# xgb_time_par <- toc() 
 
 stopCluster(local_cluster)
 registerDoSEQ()
@@ -170,21 +172,21 @@ cv_est <- rbind(
   OLS = getTrainPerf(ols_model_par),
   ElasticNet = getTrainPerf(en_model_par),
   RandomForest = getTrainPerf(rf_model_par),
-  XGBoost = getTrainPerf(xgb_model_par)
+  # XGBoost = getTrainPerf(xgb_model_par)
 )
 
 ## Predictions
 ols_preds <- predict(ols_model_par, newdata = test_data, na.action = na.pass)
 en_preds <- predict(en_model_par, newdata = test_data, na.action = na.pass)
 rf_preds <- predict(rf_model_par, newdata = test_data, na.action = na.pass)
-xgb_preds <- predict(xgb_model_par, newdata = test_data, na.action = na.pass)
+# xgb_preds <- predict(xgb_model_par, newdata = test_data, na.action = na.pass)
 
 ## Holdout CV estimates
 holdout_est <- as.data.frame(rbind(
   OLS = postResample(pred = ols_preds, obs = test_data$mosthrs),
   ElasticNet = postResample(pred = en_preds, obs = test_data$mosthrs),
   RandomForest = postResample(pred = rf_preds, obs = test_data$mosthrs),
-  XGBoost = postResample(pred = xgb_preds, obs = test_data$mosthrs)
+  # XGBoost = postResample(pred = xgb_preds, obs = test_data$mosthrs)
 ))
 
 # Publication 
@@ -197,7 +199,7 @@ format_ml_assign <- function(x) {
 }
 
 table3_tbl <- tibble(
-  algo = c("OLS regression", "elastic net", "random forest", "eXtreme Gradient Boosting"),
+  algo = c("OLS regression", "elastic net", "random forest"), #"eXtreme Gradient Boosting"),
   cv_rsq = format_ml_assign(cv_est$TrainRsquared), 
   ho_rsq = format_ml_assign(holdout_est$Rsquared) 
 ) 
@@ -205,18 +207,18 @@ table3_tbl <- tibble(
 write_csv(table3_tbl, "table3.csv")
 
 table4_tbl <- tibble(
-  algo = c("OLS regression", "elastic net", "random forest", "eXtreme Gradient Boosting"),
+  algo = c("OLS regression", "elastic net", "random forest"), #"eXtreme Gradient Boosting"),
   supercomputer = c(
     ols_time_seq$toc - ols_time_seq$tic, 
     en_time_seq$toc - en_time_seq$tic,
     rf_time_seq$toc - rf_time_seq$tic,
-    xgb_time_seq$toc - xgb_time_seq$tic
+    # xgb_time_seq$toc - xgb_time_seq$tic
   ),
   parallel_col = c(
     ols_time_par$toc - ols_time_par$tic,
     en_time_par$toc - en_time_par$tic,
     rf_time_par$toc - rf_time_par$tic,
-    xgb_time_par$toc - xgb_time_par$tic
+    # xgb_time_par$toc - xgb_time_par$tic
   )
 )
 
