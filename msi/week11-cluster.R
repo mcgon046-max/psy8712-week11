@@ -171,7 +171,7 @@ registerDoSEQ()
 cv_est <- rbind(
   OLS = getTrainPerf(ols_model_par),
   ElasticNet = getTrainPerf(en_model_par),
-  RandomForest = getTrainPerf(rf_model_par),
+  RandomForest = getTrainPerf(rf_model_par)
   # XGBoost = getTrainPerf(xgb_model_par)
 )
 
@@ -185,7 +185,7 @@ rf_preds <- predict(rf_model_par, newdata = test_data, na.action = na.pass)
 holdout_est <- as.data.frame(rbind(
   OLS = postResample(pred = ols_preds, obs = test_data$mosthrs),
   ElasticNet = postResample(pred = en_preds, obs = test_data$mosthrs),
-  RandomForest = postResample(pred = rf_preds, obs = test_data$mosthrs),
+  RandomForest = postResample(pred = rf_preds, obs = test_data$mosthrs)
   # XGBoost = postResample(pred = xgb_preds, obs = test_data$mosthrs)
 ))
 
@@ -205,6 +205,8 @@ table3_tbl <- tibble(
 ) 
 
 write_csv(table3_tbl, "../out/table3.csv")
+
+core_count <- 31 # How many cores used 
 
 table4_tbl <- tibble(
   algo = c("OLS regression", "elastic net", "random forest"), #"eXtreme Gradient Boosting"),
