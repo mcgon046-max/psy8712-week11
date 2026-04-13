@@ -1,0 +1,4 @@
+algo,cv_rsq,ho_rsq
+OLS regression,.04,.01
+elastic net,.40,.42
+random forest,.59,.66
