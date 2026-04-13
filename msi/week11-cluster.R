@@ -213,13 +213,13 @@ table4_tbl <- tibble(
   supercomputer = c(
     ols_time_seq$toc - ols_time_seq$tic, 
     en_time_seq$toc - en_time_seq$tic,
-    rf_time_seq$toc - rf_time_seq$tic,
+    rf_time_seq$toc - rf_time_seq$tic
     # xgb_time_seq$toc - xgb_time_seq$tic
   ),
   parallel_col = c(
     ols_time_par$toc - ols_time_par$tic,
     en_time_par$toc - en_time_par$tic,
-    rf_time_par$toc - rf_time_par$tic,
+    rf_time_par$toc - rf_time_par$tic
     # xgb_time_par$toc - xgb_time_par$tic
   )
 )
