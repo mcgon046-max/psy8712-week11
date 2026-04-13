@@ -204,7 +204,7 @@ table3_tbl <- tibble(
   ho_rsq = format_ml_assign(holdout_est$Rsquared) 
 ) 
 
-write_csv(table3_tbl, "table3.csv")
+write_csv(table3_tbl, "../out/table3.csv")
 
 table4_tbl <- tibble(
   algo = c("OLS regression", "elastic net", "random forest"), #"eXtreme Gradient Boosting"),
@@ -224,4 +224,4 @@ table4_tbl <- tibble(
 
 colnames(table4_tbl)[3] <- paste0("supercomputer_", core_count)
 
-write_csv(table4_tbl, "table4.csv")
+write_csv(table4_tbl, "../out/table4.csv")
