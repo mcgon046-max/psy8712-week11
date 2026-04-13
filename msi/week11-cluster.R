@@ -227,3 +227,33 @@ table4_tbl <- tibble(
 colnames(table4_tbl)[3] <- paste0("supercomputer_", core_count)
 
 write_csv(table4_tbl, "../out/table4.csv")
+
+# Answers to questions:
+## 1: In the outputs, it seems that random forest improved the most with the
+## usage of the super computer. Specifically, the speed of compute improved by
+## around 10x. For elastic net, the 31 cores also markedly improved the the 
+## speed of the output. Interestingly, for the OLS computation, the computation
+## took far longer. This is because OLS is does not improve through the use 
+## of parallel processing. 
+
+## 2: The relationship between time and number of cores used, in this case, 
+## directly depended on the algorithm that was run on these data. But, in 
+## general, one can assume that a greater usage of compute (more cores) 
+## would lower the time needed for computation.
+
+## 3: If my supervisor asked me to pick a model for use in production, first, 
+## as with earlier, we would need to see which models explain the most variance.
+## If this is the only metric which we are optimizing for, then XGBoost would
+## certainly be the best model. Further, assuming a firm's access to this level
+## of compute, then computational time somewhat ceases to be a factor, although
+## code would still need to be optimized for the super computing environment.
+## 
+## Considering I only used random forest in my super computing batch job, and 
+## this had the highest R^2 of all tested, this would be the best model based
+## on the evidence I amassed. Thus, this would be the recommendation. 
+## The time it took to run was markedly decreased by using more cores. So, 
+## assuming some future task which would require far more compute, this is where
+## this level of computing comes in handy. 
+
+
+
